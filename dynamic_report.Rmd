@@ -1,0 +1,81 @@
+---
+title: My dynamic report
+output: html_fragment
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE, message=FALSE, warning=FALSE, error=FALSE)
+
+```
+
+
+```{r }
+library("tidyverse")
+logged_data <- read.csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vRXth27lgkwB03wZMIcgRUmDbYwLB9-rWO_6jS8kEG6tStVfCspbiK37AgQczb6hC1Nh7KmmqNORYGO/pub?output=csv")
+library(tidyverse)
+
+# keep the original names first
+old_names <- names(logged_data)
+
+# make a simpler dataframe to work with
+latest_data <- logged_data %>%
+  rename(
+    timestamp = all_of(old_names[1]),
+    ad_type = all_of(old_names[2]),
+    ad_length = all_of(old_names[3]),
+    click_likelihood = all_of(old_names[4])
+  )
+```
+
+#Tracking advertisement type and click likelihood
+
+This dynamic report summarises responses from an advertisement survey dataset.
+It focuses on the type of advertisement shown, the length of the advertisement, and how likely respondents are to click on it.
+
+```{r summary}
+summary_data <- latest_data %>%
+  summarise(
+    total_responses = n(),
+    min_length = min(ad_length, na.rm = TRUE),
+    mean_length = mean(ad_length, na.rm = TRUE)
+  )
+```
+
+There were 'r summary_data$total_responses' responses in this survey.
+
+The shortest advertisement lasted 'r summary_data$min_length' seconds.
+
+The average advertisement length was 'r round(summary_data$mean_length, 2)' seconds.
+
+Advertisement type responses
+
+This bar chart shows the number of responses for each advertisement type.
+
+```{r}
+latest_data %>%
+  ggplot(aes(x = ad_type)) +
+  geom_bar() +
+  labs(
+    title = "Type of advertisement",
+    x = "Advertisement type",
+    y = "Count"
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+  
+#Click likelihood responses
+
+This bar chart shows how likely respondents are to click on the advertisement.
+
+```{r}
+latest_data %>%
+  ggplot(aes(x = click_likelihood)) +
+  geom_bar() +
+  labs(
+    title = "Likelihood of clicking the advertisement",
+    x = "Click likelihood",
+    y = "Count"
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+ 
